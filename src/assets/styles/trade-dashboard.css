@@ -79,7 +79,9 @@
     -webkit-overflow-scrolling: touch;
   }
   .tab {
-    white-space: nowrap;
+    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
   }
 }
 
