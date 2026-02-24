@@ -66,7 +66,11 @@
       <!-- Actions -->
       <div class="actions">
         <div class="buttons">
-          <button class="btn primary" @click="fetchBalance">잔액 새로고침</button>
+          <button class="btn primary"
+                  @click="refreshDashboard"
+                  :disabled="isRefreshing">
+            {{ isRefreshing ? '새로고침 중...' : '잔액 새로고침' }}
+          </button>
           <button class="btn" :class="isRunning ? 'danger' : 'success'" @click="toggleBot">
             {{ isRunning ? '봇 정지' : '봇 시작' }}
           </button>
@@ -107,6 +111,10 @@ export default {
       todayProfit: 0,
       totalAssetsKrw: 0,
       totalProfit: 0,
+      isRefreshing: false,
+      startId: 0,
+      lastId: 0,
+      liveTimer: null,
     }
   },
   methods: {
@@ -160,14 +168,25 @@ export default {
     async toggleBot() {
       try {
         if (!this.isRunning) {
+          this.clearLogs()
           await fetch('/api/trade/bot/start', { method: 'POST' })
           this.isRunning = true
+          await this.fetchStartId()
+          if (this.liveTimer) {
+            clearInterval(this.liveTimer)
+          }
+          this.liveTimer = setInterval(() => {
+            this.fetchLiveLogs()
+          }, 1500)
           this.addLog('봇 시작 요청 성공', 'success')
         } else {
           await fetch('/api/trade/bot/stop', { method: 'POST' })
           this.isRunning = false
+          clearInterval(this.liveTimer)
+          this.liveTimer = null
           this.addLog('봇 정지 요청 성공', 'success')
         }
+
       } catch (e) {
         this.addLog(`봇 제어 실패: ${e.message}`, 'error')
       }
@@ -196,6 +215,39 @@ export default {
         this.addLog('총 수익 조회 실패: ' + e.message, 'error')
       }
     },
+    async fetchStartId() {
+      try {
+        const res = await fetch('/api/trade/start-id?coin=BTC')
+        const startId = await res.json()
+
+        this.startId = startId
+        this.lastId = startId
+
+        this.addLog(`시작 ID 설정: ${startId}`, 'info')
+      } catch (e) {
+        this.addLog('startId 조회 실패: ' + e.message, 'error')
+      }
+    },
+    async fetchLiveLogs() {
+      try {
+        const res = await fetch(
+          `/api/trade/liveLogs?coin=BTC&afterId=${this.lastId}`
+        )
+        const logs = await res.json()
+        if (logs.length > 0) {
+          logs.forEach(log => {
+            this.addLog(
+              `${log.side} ${log.qty} BTC @ ${log.price}`,
+              log.side === 'BUY' ? 'success' : 'danger'
+            )
+          })
+          // 마지막 ID 갱신 ⭐⭐⭐
+          this.lastId = logs[logs.length - 1].id
+        }
+      } catch (e) {
+        this.addLog('실시간 로그 조회 실패: ' + e.message, 'error')
+      }
+    },
     async fetchBotStatus() {
       try {
         const res = await fetch('/api/trade/bot/status')
@@ -206,14 +258,26 @@ export default {
         this.addLog('봇 상태 조회 실패: ' + e.message, 'error')
       }
     },
+    async refreshDashboard() {
+      if (this.isRefreshing) return
+      this.isRefreshing = true
+
+      try {
+        await Promise.all([
+          this.fetchBalance(),
+          this.fetchTodayProfit(),
+          this.fetchTotalAssets(),
+          this.fetchTotalProfit(),
+          this.fetchBotStatus(),
+        ])
+      } finally {
+        this.isRefreshing = false
+      }
+    },
   },
   mounted() {
     this.addLog('대시보드 초기화', 'info')
-    this.fetchBotStatus()
-    this.fetchBalance()
-    this.fetchTodayProfit()
-    this.fetchTotalAssets()
-    this.fetchTotalProfit()
+    this.refreshDashboard()
   },
 }
 </script>
