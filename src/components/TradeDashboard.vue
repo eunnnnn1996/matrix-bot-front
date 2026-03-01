@@ -143,10 +143,10 @@ export default {
         this.krwBalance = krw ? Number(krw.balance) : 0
         this.btcBalance = btc ? Number(btc.balance) : 0
         this.lastUpdate = new Date().toLocaleString('ko-KR')
-        this.addLog('잔액 조회 완료', 'success', {
-          krwBalance: this.krwBalance,
-          btcBalance: this.btcBalance,
-        })
+        // this.addLog('잔액 조회 완료', 'success', {
+        //   krwBalance: this.krwBalance,
+        //   btcBalance: this.btcBalance,
+        // })
       } catch (e) {
         this.addLog('잔액 조회 실패: ' + e.message, 'error')
       }
@@ -158,9 +158,9 @@ export default {
 
         this.totalAssetsKrw = Number(data.totalAssetsKrw ?? 0)
 
-        this.addLog('총 잔액 조회 완료', 'success', {
-          totalAssetsKrw: this.totalAssetsKrw,
-        })
+        // this.addLog('총 잔액 조회 완료', 'success', {
+        //   totalAssetsKrw: this.totalAssetsKrw,
+        // })
       } catch (e) {
         this.addLog('총 잔액 조회 실패: ' + e.message, 'error')
       }
@@ -198,7 +198,7 @@ export default {
 
         this.todayProfit = Number(data.todayRealizedPnl ?? 0)
 
-        this.addLog('오늘 수익 조회 완료', 'success')
+        // this.addLog('오늘 수익 조회 완료', 'success')
       } catch (e) {
         this.addLog('오늘 수익 조회 실패: ' + e.message, 'error')
       }
@@ -210,7 +210,7 @@ export default {
 
         this.totalProfit = Number(data.totalRealizedPnl ?? 0)
 
-        this.addLog('총 수익 조회 완료', 'success')
+        // this.addLog('총 수익 조회 완료', 'success')
       } catch (e) {
         this.addLog('총 수익 조회 실패: ' + e.message, 'error')
       }

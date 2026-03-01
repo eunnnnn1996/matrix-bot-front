@@ -14,11 +14,6 @@
             <p>추세 + 되돌림 자동매매</p>
           </div>
         </div>
-        <!-- 상태 뱃지는 일단 고정 UI만 (나중에 store로 연결) -->
-        <div class="status-badge stopped">
-          <span class="dot"></span>
-          정지됨
-        </div>
       </div>
 
       <!-- ✅ 메뉴도 항상 유지 -->
