@@ -75,9 +75,9 @@
               <th>시간</th>
               <th>코인</th>
               <th>구분</th>
-              <th class="right">가격 (KRW)</th>
-              <th class="right">수량</th>
-              <th class="right">총액 (KRW)</th>
+              <th class="right">매매 시세 (KRW)</th>
+              <th class="right">매매 수량</th>
+              <th class="right">매매 가격 (KRW)</th>
               <th class="right">수익</th>
             </tr>
           </thead>
@@ -109,11 +109,13 @@
                 {{ Math.floor(t.price * t.qty).toLocaleString('ko-KR') }}
               </td>
 
-              <td class="right mono" :class="(t.pnl ?? 0) >= 0 ? 'profit' : 'loss'">
-                {{ t.pnl != null
-                    ? ((t.pnl >= 0 ? '+' : '') + Math.floor(t.pnl).toLocaleString('ko-KR'))
-                    : '-' }}
-              </td>
+              <td class="right mono"
+              :class="t.side === 'SELL'
+                ? ((Number(t.profit ?? 0)) >= 0 ? 'profit' : 'loss')
+                : ''"
+            >
+              {{ formatProfit(t) }}
+            </td>
             </tr>
           </tbody>
         </table>
@@ -204,7 +206,7 @@ export default {
 
     totalPnl() {
       return this.filteredTrades.reduce(
-        (sum, t) => sum + (t.pnl ?? 0),
+        (sum, t) => sum + Number(t.profit ?? 0),
         0
       )
     },
@@ -256,6 +258,13 @@ export default {
       this.page = p
       this.fetchTrades()
     },
+    formatProfit(trade) {
+      if (trade.side === 'BUY') return '-'
+      const p = Number(trade.profit ?? 0)
+      if (isNaN(p)) return '-'
+      return (p >= 0 ? '+' : '') +
+            Math.floor(p).toLocaleString('ko-KR')
+    }
   },
 
   mounted() {
