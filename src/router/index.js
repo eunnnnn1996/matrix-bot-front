@@ -4,6 +4,7 @@ import AppLayout from '../layouts/AppLayout.vue'
 import TradeDashboard from '../components/TradeDashboard.vue'
 import HistoryPage from '../pages/HistoryPage.vue'
 import SettingsPage from '../pages/SettingsPage.vue'
+import StatsPage from '../pages/StatsPage.vue'
 
 const routes = [
   {
@@ -14,6 +15,7 @@ const routes = [
       { path: 'dashboard', component: TradeDashboard },
       { path: 'history', component: HistoryPage },
       { path: 'settings', component: SettingsPage },
+      { path: 'stats', component: StatsPage },
     ],
   },
 ]

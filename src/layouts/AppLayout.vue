@@ -20,6 +20,7 @@
       <nav class="menu-tabs" aria-label="dashboard tabs">
         <router-link class="tab" to="/dashboard" active-class="active">대시보드</router-link>
         <router-link class="tab" to="/history" active-class="active">거래내역</router-link>
+        <router-link class="tab" to="/stats" active-class="active">통계</router-link>
         <router-link class="tab" to="/settings" active-class="active">설정</router-link>
         <div class="tab-spacer"></div>
       </nav>
