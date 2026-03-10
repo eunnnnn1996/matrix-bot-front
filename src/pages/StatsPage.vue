@@ -146,12 +146,12 @@
 
           <div class="legend-item">
             <span class="legend-dot win"></span>
-            <span>익절 {{ stats.winCount }}건</span>
+            <span>익절 {{ stats.profitCnt }}건</span>
           </div>
 
           <div class="legend-item">
             <span class="legend-dot loss"></span>
-            <span>손절 {{ stats.lossCount }}건</span>
+            <span>손절 {{ stats.lossCnt }}건</span>
           </div>
 
         </div>
@@ -261,13 +261,45 @@ export default {
         maxProfit: 0,
         minLoss: 0,
         profitCnt: 0,
+        lossCnt: 0,
+
         totalProfit: 0,
-        winCount: 0,
-        lossCount: 0,
-        cumulative: [],
+        /* cumulative: [],
         daily: [],
         topWins: [],
-        topLosses: []
+        topLosses: [] */
+         cumulative: [
+      10000,
+      20000,
+      15000,
+      30000,
+      45000,
+      60000,
+      55000,
+      80000,
+      120000,
+      150000
+    ],
+    daily: [
+      { date:"03-01", pnl:10000, count:3 },
+      { date:"03-02", pnl:-5000, count:2 },
+      { date:"03-03", pnl:15000, count:4 },
+      { date:"03-04", pnl:8000, count:2 },
+      { date:"03-05", pnl:-3000, count:1 },
+      { date:"03-06", pnl:12000, count:3 }
+    ],
+
+    topWins:[
+      { id:1, coin:"BTC", pnl:200000 },
+      { id:2, coin:"ETH", pnl:150000 },
+      { id:3, coin:"SOL", pnl:120000 }
+    ],
+
+    topLosses:[
+      { id:1, coin:"XRP", pnl:-50000 },
+      { id:2, coin:"DOGE", pnl:-35000 },
+      { id:3, coin:"ADA", pnl:-20000 }
+    ]
       },
 
       activePeriod: "all",
@@ -287,11 +319,12 @@ export default {
 
     winDash() {
 
-      const total = this.stats.winCount + this.stats.lossCount
+      const total = this.stats.profitCnt + this.stats.lossCnt
+
       if (!total) return "0 314"
 
       const circ = 2 * Math.PI * 50
-      const winPart = (this.stats.winCount / total) * circ
+      const winPart = (this.stats.profitCnt / total) * circ
 
       return `${winPart} ${circ}`
     },
@@ -349,7 +382,7 @@ export default {
 
         const res = await fetch(`/api/getProfit?period=${this.activePeriod}`)
         const data = await res.json()
-
+        console.log("test : ", data);
         this.stats.totalProfit = data.totalProfit
         this.stats.winRate = data.winRate
         this.stats.totalTrade = data.totalTrade
@@ -357,6 +390,7 @@ export default {
         this.stats.maxProfit = data.maxProfit
         this.stats.minLoss = data.minLoss
         this.stats.profitCnt = data.profitCnt
+        this.stats.lossCnt = data.lossCnt
       }catch(e){
         console.error(e)
       }finally{
