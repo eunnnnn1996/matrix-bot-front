@@ -262,32 +262,12 @@ export default {
         minLoss: 0,
         profitCnt: 0,
         lossCnt: 0,
-
-        totalProfit: 0,
         /* cumulative: [],
         daily: [],
         topWins: [],
         topLosses: [] */
-         cumulative: [
-      10000,
-      20000,
-      15000,
-      30000,
-      45000,
-      60000,
-      55000,
-      80000,
-      120000,
-      150000
-    ],
-    daily: [
-      { date:"03-01", pnl:10000, count:3 },
-      { date:"03-02", pnl:-5000, count:2 },
-      { date:"03-03", pnl:15000, count:4 },
-      { date:"03-04", pnl:8000, count:2 },
-      { date:"03-05", pnl:-3000, count:1 },
-      { date:"03-06", pnl:12000, count:3 }
-    ],
+        cumulative: [],
+        daily: [ ],
 
     topWins:[
       { id:1, coin:"BTC", pnl:200000 },
@@ -379,18 +359,21 @@ export default {
     this.isLoading = true
 
       try{
-
         const res = await fetch(`/api/getProfit?period=${this.activePeriod}`)
         const data = await res.json()
-        console.log("test : ", data);
-        this.stats.totalProfit = data.totalProfit
-        this.stats.winRate = data.winRate
-        this.stats.totalTrade = data.totalTrade
-        this.stats.avgProfit = data.avgProfit
-        this.stats.maxProfit = data.maxProfit
-        this.stats.minLoss = data.minLoss
-        this.stats.profitCnt = data.profitCnt
-        this.stats.lossCnt = data.lossCnt
+        console.log(data);
+        this.stats.totalProfit  = data.stats.totalProfit
+        this.stats.winRate      = data.stats.winRate
+        this.stats.totalTrade   = data.stats.totalTrade
+        this.stats.avgProfit    = data.stats.avgProfit
+        this.stats.maxProfit    = data.stats.maxProfit
+        this.stats.minLoss      = data.stats.minLoss
+        this.stats.profitCnt    = data.stats.profitCnt
+        this.stats.lossCnt      = data.stats.lossCnt
+        this.stats.cumulative   = data.trend.map(t => t.cumulative_profit) // 누적 그래프
+        this.stats.daily        = data.trend.map(t => ({ date: t.created_at, pnl: t.profit, count: t.cnt }))
+        this.stats.topWins      = [...data.trend] .sort((a,b) => b.profit - a.profit) .slice(0,3) .map((t,i)=>({ id: i, coin: "-", pnl: t.profit }))
+        this.stats.topLosses    = [...data.trend] .sort((a,b) => a.profit - b.profit) .slice(0,3) .map((t,i)=>({ id: i, coin: "-", pnl: t.profit }))
       }catch(e){
         console.error(e)
       }finally{
