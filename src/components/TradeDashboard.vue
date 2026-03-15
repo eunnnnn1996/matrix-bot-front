@@ -99,8 +99,11 @@
 </template>
 
 <script>
+import api from "../api/axios"
+
 export default {
   name: 'TradeDashboard',
+
   data() {
     return {
       krwBalance: 0,
@@ -117,6 +120,7 @@ export default {
       liveTimer: null,
     }
   },
+
   methods: {
     formatBtc(num) {
       return Number(num).toFixed(8)
@@ -127,137 +131,155 @@ export default {
         time,
         message,
         type,
-        ...extra,
+        ...extra
       })
       if (this.logs.length > 100) this.logs.pop()
     },
+
     clearLogs() {
       this.logs = []
     },
+
     async fetchBalance() {
+
       try {
-        const res = await fetch('/api/trade/balance')
-        const data = await res.json()
-        const krw = data.find((v) => v.currency === 'KRW')
-        const btc = data.find((v) => v.currency === 'BTC')
+        const res = await api.get("/api/trade/balance")
+        const data = res.data
+        const krw = data.find(v => v.currency === "KRW")
+        const btc = data.find(v => v.currency === "BTC")
+
         this.krwBalance = krw ? Number(krw.balance) : 0
         this.btcBalance = btc ? Number(btc.balance) : 0
+
         this.lastUpdate = new Date().toLocaleString('ko-KR')
-        // this.addLog('잔액 조회 완료', 'success', {
-        //   krwBalance: this.krwBalance,
-        //   btcBalance: this.btcBalance,
-        // })
+
       } catch (e) {
-        this.addLog('잔액 조회 실패: ' + e.message, 'error')
+        this.addLog("잔액 조회 실패: " + e.message, "error")
       }
     },
+
     async fetchTotalAssets() {
+
       try {
-        const res = await fetch('/api/trade/total-assets')
-        const data = await res.json()
-
+        const res = await api.get("/api/trade/total-assets")
+        const data = res.data
         this.totalAssetsKrw = Number(data.totalAssetsKrw ?? 0)
-
-        // this.addLog('총 잔액 조회 완료', 'success', {
-        //   totalAssetsKrw: this.totalAssetsKrw,
-        // })
       } catch (e) {
-        this.addLog('총 잔액 조회 실패: ' + e.message, 'error')
+        this.addLog("총 잔액 조회 실패: " + e.message, "error")
       }
     },
     async toggleBot() {
+
       try {
         if (!this.isRunning) {
           this.clearLogs()
-          await fetch('/api/trade/bot/start', { method: 'POST' })
+          await api.post("/api/trade/bot/start")
+
           this.isRunning = true
+
           await this.fetchStartId()
-          if (this.liveTimer) {
-            clearInterval(this.liveTimer)
-          }
+          if (this.liveTimer) clearInterval(this.liveTimer)
           this.liveTimer = setInterval(() => {
             this.fetchLiveLogs()
           }, 1500)
-          this.addLog('봇 시작 요청 성공', 'success')
+
+          this.addLog("봇 시작 요청 성공", "success")
+
         } else {
-          await fetch('/api/trade/bot/stop', { method: 'POST' })
+
+          await api.post("/api/trade/bot/stop")
           this.isRunning = false
           clearInterval(this.liveTimer)
           this.liveTimer = null
-          this.addLog('봇 정지 요청 성공', 'success')
+
+          this.addLog("봇 정지 요청 성공", "success")
+
         }
 
       } catch (e) {
-        this.addLog(`봇 제어 실패: ${e.message}`, 'error')
+        this.addLog("봇 제어 실패: " + e.message, "error")
       }
+
     },
+
     async fetchTodayProfit() {
+
       try {
-        const res = await fetch('/api/trade/today-profit?coin=BTC')
-        const data = await res.json()
+
+        const res = await api.get("/api/trade/today-profit?coin=BTC")
+        const data = res.data
 
         this.todayProfit = Number(data.todayRealizedPnl ?? 0)
 
-        // this.addLog('오늘 수익 조회 완료', 'success')
       } catch (e) {
-        this.addLog('오늘 수익 조회 실패: ' + e.message, 'error')
+        this.addLog("오늘 수익 조회 실패: " + e.message, "error")
       }
+
     },
+
     async fetchTotalProfit() {
+
       try {
-        const res = await fetch('/api/trade/total-profit?coin=BTC')
-        const data = await res.json()
+        const res = await api.get("/api/trade/total-profit?coin=BTC")
+        const data = res.data
 
         this.totalProfit = Number(data.totalRealizedPnl ?? 0)
 
-        // this.addLog('총 수익 조회 완료', 'success')
       } catch (e) {
-        this.addLog('총 수익 조회 실패: ' + e.message, 'error')
+        this.addLog("총 수익 조회 실패: " + e.message, "error")
       }
     },
     async fetchStartId() {
+
       try {
-        const res = await fetch('/api/trade/start-id?coin=BTC')
-        const startId = await res.json()
 
-        this.startId = startId
-        this.lastId = startId
+        const res = await api.get("/api/trade/start-id?coin=BTC")
 
-        this.addLog(`시작 ID 설정: ${startId}`, 'info')
+        this.startId = res.data
+        this.lastId = res.data
+
+        this.addLog(`시작 ID 설정: ${res.data}`, "info")
+
       } catch (e) {
-        this.addLog('startId 조회 실패: ' + e.message, 'error')
+        this.addLog("startId 조회 실패: " + e.message, "error")
       }
+
     },
+
     async fetchLiveLogs() {
+
       try {
-        const res = await fetch(
-          `/api/trade/liveLogs?coin=BTC&afterId=${this.lastId}`
-        )
-        const logs = await res.json()
+        const res = await api.get(`/api/trade/liveLogs?coin=BTC&afterId=${this.lastId}`)
+        const logs = res.data
+
         if (logs.length > 0) {
+
           logs.forEach(log => {
+
             this.addLog(
               `${log.side} ${log.qty} BTC @ ${log.price}`,
-              log.side === 'BUY' ? 'success' : 'danger'
+              log.side === "BUY" ? "success" : "danger"
             )
           })
-          // 마지막 ID 갱신 ⭐⭐⭐
           this.lastId = logs[logs.length - 1].id
         }
       } catch (e) {
-        this.addLog('실시간 로그 조회 실패: ' + e.message, 'error')
+        this.addLog("실시간 로그 조회 실패: " + e.message, "error")
       }
+
     },
+
     async fetchBotStatus() {
+
       try {
-        const res = await fetch('/api/trade/bot/status')
-        const data = await res.json()
-        this.isRunning = !!data.running
-        this.addLog(`봇 상태 동기화: ${this.isRunning ? 'RUNNING' : 'STOPPED'}`, 'info')
+        const res = await api.get("/api/trade/bot/status")
+        this.isRunning = !!res.data.running
       } catch (e) {
-        this.addLog('봇 상태 조회 실패: ' + e.message, 'error')
+        this.addLog("봇 상태 조회 실패: " + e.message, "error")
       }
+
     },
+
     async refreshDashboard() {
       if (this.isRefreshing) return
       this.isRefreshing = true
@@ -268,17 +290,18 @@ export default {
           this.fetchTodayProfit(),
           this.fetchTotalAssets(),
           this.fetchTotalProfit(),
-          this.fetchBotStatus(),
+          this.fetchBotStatus()
         ])
       } finally {
         this.isRefreshing = false
       }
-    },
+    }
   },
+
   mounted() {
-    this.addLog('대시보드 초기화', 'info')
+    this.addLog("대시보드 초기화", "info")
     this.refreshDashboard()
-  },
+  }
 }
 </script>
 

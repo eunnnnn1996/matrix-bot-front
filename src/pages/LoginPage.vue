@@ -91,31 +91,55 @@ export default {
   },
   methods: {
     async handleLogin() {
+
       if (this.isLoading) return
+
       this.errorMsg = ''
       this.isLoading = true
 
       try {
-        const res = await fetch('/api/auth/login', {
+
+        const res = await fetch('http://localhost:8080/auth/login', {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(this.form),
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            email: this.form.email,
+            password: this.form.password
+          })
         })
 
         const data = await res.json()
 
         if (!res.ok) {
-          throw new Error(data.message || '로그인에 실패했습니다')
+          throw new Error(data.message || '로그인 실패')
         }
 
-        console.log('[Login] 성공:', data)
-        this.$router.push('/dashboard')
+        // JWT 저장
+        localStorage.setItem("accessToken", data.accessToken)
+        localStorage.setItem("refreshToken", data.refreshToken)
+
+        console.log("로그인 성공", data)
+
+        // dashboard 이동
+        this.$router.push("/dashboard")
+
+        // 로그인 상태 갱신
+        setTimeout(() => {
+          window.location.reload()
+        }, 100)
+
       } catch (e) {
-        console.error('[Login] 실패:', e.message)
+
         this.errorMsg = e.message
+
       } finally {
+
         this.isLoading = false
+
       }
+
     },
   },
 }

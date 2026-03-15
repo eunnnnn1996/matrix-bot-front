@@ -168,38 +168,45 @@ export default {
   methods: {
     async handleSignup() {
       if (this.isLoading || !this.canSubmit) return
-      this.errorMsg = ''
-      this.successMsg = ''
+
+      this.errorMsg = ""
+      this.successMsg = ""
       this.isLoading = true
 
       try {
-        const res = await fetch('/api/auth/signup', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+
+        const res = await fetch("http://localhost:8080/auth/signup", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
           body: JSON.stringify({
             name: this.form.name,
             email: this.form.email,
-            password: this.form.password,
-          }),
+            password: this.form.password
+          })
         })
 
-        const data = await res.json()
-
         if (!res.ok) {
-          throw new Error(data.message || '회원가입에 실패했습니다')
+          const text = await res.text()
+          throw new Error(text || "회원가입 실패")
         }
 
-        console.log('[Signup] 성공:', data)
-        this.successMsg = '회원가입 완료! 로그인 페이지로 이동합니다...'
+        this.successMsg = "회원가입 완료! 로그인 페이지로 이동합니다."
 
         setTimeout(() => {
-          this.$router.push('/login')
-        }, 1500)
-      } catch (e) {
-        console.error('[Signup] 실패:', e.message)
-        this.errorMsg = e.message
+          this.$router.push("/login")
+        }, 1200)
+
+      } catch (err) {
+
+        console.error(err)
+        this.errorMsg = err.message || "회원가입 실패"
+
       } finally {
+
         this.isLoading = false
+
       }
     },
   },

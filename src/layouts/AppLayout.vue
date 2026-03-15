@@ -23,6 +23,17 @@
         <router-link class="tab" to="/stats" active-class="active">통계</router-link>
         <router-link class="tab" to="/settings" active-class="active">설정</router-link>
         <div class="tab-spacer"></div>
+        <div class="auth-buttons">
+          <template v-if="!isLoggedIn">
+            <router-link class="auth-btn login" to="/login">로그인</router-link>
+            <router-link class="auth-btn signup" to="/signup">회원가입</router-link>
+          </template>
+
+          <template v-else>
+            <button class="auth-btn login" @click="logout">로그아웃</button>
+          </template>
+
+        </div>
       </nav>
     </header>
 
@@ -37,7 +48,45 @@
 </template>
 
 <script>
-export default { name: 'AppLayout' }
+export default {
+  name: 'AppLayout',
+  computed: {
+
+    isLoggedIn() {
+      return !!localStorage.getItem("accessToken")
+    }
+  },
+
+  methods: {
+
+    async logout() {
+      const refreshToken = localStorage.getItem("refreshToken")
+      try {
+
+        await fetch("http://localhost:8080/auth/logout", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json"
+          },
+          body: JSON.stringify({
+            refreshToken: refreshToken
+          })
+        })
+
+      } catch(e) {
+        console.log("logout api 실패")
+      }
+
+      localStorage.removeItem("accessToken")
+      localStorage.removeItem("refreshToken")
+
+      this.$router.push("/login")
+
+    }
+
+  }
+
+}
 </script>
 
 <style scoped>
