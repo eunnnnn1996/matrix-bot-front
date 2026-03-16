@@ -76,8 +76,10 @@
 </template>
 
 <script>
+import api from "../api/axios"
 export default {
   name: 'LoginPage',
+
   data() {
     return {
       form: {
@@ -89,6 +91,16 @@ export default {
       errorMsg: '',
     }
   },
+
+  // ⭐ 여기 추가
+  mounted() {
+
+    if (localStorage.getItem("accessToken")) {
+      this.$router.push("/dashboard")
+    }
+
+  },
+
   methods: {
     async handleLogin() {
 
@@ -99,40 +111,24 @@ export default {
 
       try {
 
-        const res = await fetch('http://localhost:8080/auth/login', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify({
-            email: this.form.email,
-            password: this.form.password
-          })
+        const res = await api.post("/auth/login", {
+          email: this.form.email,
+          password: this.form.password
         })
 
-        const data = await res.json()
+        const data = res.data
 
-        if (!res.ok) {
-          throw new Error(data.message || '로그인 실패')
-        }
-
-        // JWT 저장
         localStorage.setItem("accessToken", data.accessToken)
         localStorage.setItem("refreshToken", data.refreshToken)
 
-        console.log("로그인 성공", data)
+        window.dispatchEvent(new Event("login-success"))
 
-        // dashboard 이동
-        this.$router.push("/dashboard")
-
-        // 로그인 상태 갱신
-        setTimeout(() => {
-          window.location.reload()
-        }, 100)
+        const redirect = this.$route.query.redirect || "/dashboard"
+        this.$router.push(redirect)
 
       } catch (e) {
 
-        this.errorMsg = e.message
+        this.errorMsg = e.response?.data?.message || "로그인 실패"
 
       } finally {
 
@@ -140,8 +136,8 @@ export default {
 
       }
 
-    },
-  },
+    }
+  }
 }
 </script>
 

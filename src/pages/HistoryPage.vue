@@ -150,6 +150,7 @@
 </template>
 
 <script>
+import api from "../api/axios"
 export default {
   name: 'HistoryPage',
 
@@ -229,29 +230,34 @@ export default {
     },
 
     async fetchTrades() {
-      this.isLoading = true
 
-      try {
-        const res = await fetch(
-          `/api/events?page=${this.page}&size=${this.size}&sort=createdAt,desc`
-        )
+    this.isLoading = true
 
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    try {
 
-        const data = await res.json()
+      const res = await api.get(
+        `/api/events?page=${this.page}&size=${this.size}&sort=createdAt,desc`
+      )
 
-        // ⭐ Spring Page 구조
-        this.trades = data.content || []
-        this.totalPages = data.totalPages || 1
-        this.totalElements = data.totalElements || 0
+      const data = res.data
 
-      } catch (e) {
-        console.error('[HistoryPage] fetch failed:', e.message)
-        this.trades = []
-      } finally {
-        this.isLoading = false
-      }
-    },
+      // Spring Page 구조
+      this.trades = data.content || []
+      this.totalPages = data.totalPages || 1
+      this.totalElements = data.totalElements || 0
+
+    } catch (e) {
+
+      console.error('[HistoryPage] fetch failed:', e.message)
+      this.trades = []
+
+    } finally {
+
+      this.isLoading = false
+
+    }
+
+  },
 
     changePage(p) {
       if (p < 0 || p >= this.totalPages) return

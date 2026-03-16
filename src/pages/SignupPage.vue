@@ -114,6 +114,7 @@
 </template>
 
 <script>
+import api from "../api/axios"
 export default {
   name: 'SignupPage',
   data() {
@@ -167,48 +168,45 @@ export default {
   },
   methods: {
     async handleSignup() {
-      if (this.isLoading || !this.canSubmit) return
 
-      this.errorMsg = ""
-      this.successMsg = ""
-      this.isLoading = true
+    if (this.isLoading || !this.canSubmit) return
 
-      try {
+    this.errorMsg = ""
+    this.successMsg = ""
+    this.isLoading = true
 
-        const res = await fetch("http://localhost:8080/auth/signup", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            name: this.form.name,
-            email: this.form.email,
-            password: this.form.password
-          })
-        })
+    try {
 
-        if (!res.ok) {
-          const text = await res.text()
-          throw new Error(text || "회원가입 실패")
-        }
+      const res = await api.post("/auth/signup", {
+        name: this.form.name,
+        email: this.form.email,
+        password: this.form.password
+      })
 
-        this.successMsg = "회원가입 완료! 로그인 페이지로 이동합니다."
+      const data = res.data
 
-        setTimeout(() => {
-          this.$router.push("/login")
-        }, 1200)
+      this.successMsg = "회원가입 완료! 로그인 페이지로 이동합니다."
 
-      } catch (err) {
+      setTimeout(() => {
+        this.$router.push("/login")
+      }, 1200)
 
-        console.error(err)
-        this.errorMsg = err.message || "회원가입 실패"
+    } catch (err) {
 
-      } finally {
+      console.error(err)
 
-        this.isLoading = false
+      this.errorMsg =
+        err.response?.data?.message ||
+        err.response?.data ||
+        "회원가입 실패"
 
-      }
-    },
+    } finally {
+
+      this.isLoading = false
+
+    }
+
+  },
   },
 }
 </script>

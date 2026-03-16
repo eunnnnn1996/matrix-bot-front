@@ -11,20 +11,69 @@ import SignupPage       from '../pages/SignupPage.vue'
 const routes = [
   {
     path: '/',
-    component: AppLayout,   // ✅ 공통 틀
+    component: AppLayout,
     children: [
+
       { path: '', redirect: '/dashboard' },
-      { path: 'dashboard' , component: TradeDashboard },
-      { path: 'history'   , component: HistoryPage },
-      { path: 'settings'  , component: SettingsPage },
-      { path: 'stats'     , component: StatsPage },
-      { path: 'login'     , component: LoginPage },
-      { path: 'signup'    , component: SignupPage },
+
+      {
+        path: 'dashboard',
+        component: TradeDashboard
+      },
+
+      {
+        path: 'history',
+        component: HistoryPage,
+        meta: { requiresAuth: true }
+      },
+
+      {
+        path: 'settings',
+        component: SettingsPage,
+        meta: { requiresAuth: true }
+      },
+
+      {
+        path: 'stats',
+        component: StatsPage,
+        meta: { requiresAuth: true }
+      },
+
+      {
+        path: 'login',
+        component: LoginPage
+      },
+
+      {
+        path: 'signup',
+        component: SignupPage
+      }
+
     ],
   },
 ]
 
-export default createRouter({
+const router = createRouter({
   history: createWebHistory(),
   routes,
 })
+
+
+// ⭐ Router Guard
+router.beforeEach((to, from, next) => {
+
+  const token = localStorage.getItem("accessToken")
+
+  if (to.meta.requiresAuth && !token) {
+
+    next("/login")
+
+  } else {
+
+    next()
+
+  }
+
+})
+
+export default router

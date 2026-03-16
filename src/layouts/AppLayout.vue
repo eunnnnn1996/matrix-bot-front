@@ -1,6 +1,6 @@
 <template>
   <div class="dashboard">
-    <!-- ✅ 항상 유지되는 Header -->
+
     <header class="header">
       <div class="header-content">
         <div class="logo">
@@ -16,69 +16,79 @@
         </div>
       </div>
 
-      <!-- ✅ 메뉴도 항상 유지 -->
-      <nav class="menu-tabs" aria-label="dashboard tabs">
-        <router-link class="tab" to="/dashboard" active-class="active">대시보드</router-link>
-        <router-link class="tab" to="/history" active-class="active">거래내역</router-link>
-        <router-link class="tab" to="/stats" active-class="active">통계</router-link>
-        <router-link class="tab" to="/settings" active-class="active">설정</router-link>
+      <nav class="menu-tabs">
+        <router-link class="tab" to="/dashboard">대시보드</router-link>
+        <router-link v-if="isLoggedIn" class="tab" to="/history">거래내역</router-link>
+        <router-link v-if="isLoggedIn" class="tab" to="/stats">통계</router-link>
+        <router-link v-if="isLoggedIn" class="tab" to="/settings">설정</router-link>
         <div class="tab-spacer"></div>
         <div class="auth-buttons">
           <template v-if="!isLoggedIn">
             <router-link class="auth-btn login" to="/login">로그인</router-link>
             <router-link class="auth-btn signup" to="/signup">회원가입</router-link>
           </template>
-
           <template v-else>
             <button class="auth-btn login" @click="logout">로그아웃</button>
           </template>
-
         </div>
       </nav>
     </header>
 
-    <!-- ✅ 여기만 페이지가 바뀜 -->
     <main class="main">
       <router-view />
     </main>
 
-    <!-- ✅ 항상 유지되는 Footer -->
-    <footer class="footer">Matrix Trade Bot v2.0</footer>
+    <footer class="footer">
+      Matrix Trade Bot v2.0
+    </footer>
+
   </div>
 </template>
 
 <script>
-export default {
-  name: 'AppLayout',
-  computed: {
+import api from "../api/axios"
 
-    isLoggedIn() {
-      return !!localStorage.getItem("accessToken")
+export default {
+  name: "AppLayout",
+
+  data() {
+    return {
+      isLoggedIn: !!localStorage.getItem("accessToken")
     }
+  },
+
+  created() {
+
+    this.loginHandler = () => {
+      this.isLoggedIn = true
+    }
+
+    window.addEventListener("login-success", this.loginHandler)
+
+  },
+
+  beforeUnmount() {
+    window.removeEventListener("login-success", this.loginHandler)
   },
 
   methods: {
 
     async logout() {
+
       const refreshToken = localStorage.getItem("refreshToken")
+
       try {
-
-        await fetch("http://localhost:8080/auth/logout", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            refreshToken: refreshToken
-          })
+        await api.post("/auth/logout", {
+          refreshToken: refreshToken
         })
-
       } catch(e) {
         console.log("logout api 실패")
       }
 
       localStorage.removeItem("accessToken")
       localStorage.removeItem("refreshToken")
+
+      this.isLoggedIn = false
 
       this.$router.push("/login")
 

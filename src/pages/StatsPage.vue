@@ -246,6 +246,7 @@
 
 
 <script>
+import api from "../api/axios"
 export default {
 
   name: "StatsPage",
@@ -354,32 +355,64 @@ export default {
       this.fetchStats()
     },
 
-  async fetchStats(){
+  async fetchStats() {
 
     this.isLoading = true
 
-      try{
-        const res = await fetch(`/api/getProfit?period=${this.activePeriod}`)
-        const data = await res.json()
-        console.log(data);
-        this.stats.totalProfit  = data.stats.totalProfit
-        this.stats.winRate      = data.stats.winRate
-        this.stats.totalTrade   = data.stats.totalTrade
-        this.stats.avgProfit    = data.stats.avgProfit
-        this.stats.maxProfit    = data.stats.maxProfit
-        this.stats.minLoss      = data.stats.minLoss
-        this.stats.profitCnt    = data.stats.profitCnt
-        this.stats.lossCnt      = data.stats.lossCnt
-        this.stats.cumulative   = data.trend.map(t => t.cumulative_profit) // 누적 그래프
-        this.stats.daily        = data.trend.map(t => ({ date: t.created_at, pnl: t.profit, count: t.cnt }))
-        this.stats.topWins      = [...data.trend] .sort((a,b) => b.profit - a.profit) .slice(0,3) .map((t,i)=>({ id: i, coin: "-", pnl: t.profit }))
-        this.stats.topLosses    = [...data.trend] .sort((a,b) => a.profit - b.profit) .slice(0,3) .map((t,i)=>({ id: i, coin: "-", pnl: t.profit }))
-      }catch(e){
-        console.error(e)
-      }finally{
-        this.isLoading = false
-      }
+    try {
+
+      const res = await api.get(`/api/getProfit?period=${this.activePeriod}`)
+
+      const data = res.data
+
+      console.log(data)
+
+      this.stats.totalProfit  = data.stats.totalProfit
+      this.stats.winRate      = data.stats.winRate
+      this.stats.totalTrade   = data.stats.totalTrade
+      this.stats.avgProfit    = data.stats.avgProfit
+      this.stats.maxProfit    = data.stats.maxProfit
+      this.stats.minLoss      = data.stats.minLoss
+      this.stats.profitCnt    = data.stats.profitCnt
+      this.stats.lossCnt      = data.stats.lossCnt
+
+      this.stats.cumulative = data.trend.map(t => t.cumulative_profit)
+
+      this.stats.daily = data.trend.map(t => ({
+        date: t.created_at,
+        pnl: t.profit,
+        count: t.cnt
+      }))
+
+      this.stats.topWins = [...data.trend]
+        .sort((a,b) => b.profit - a.profit)
+        .slice(0,3)
+        .map((t,i)=>({
+          id: i,
+          coin: "-",
+          pnl: t.profit
+        }))
+
+      this.stats.topLosses = [...data.trend]
+        .sort((a,b) => a.profit - b.profit)
+        .slice(0,3)
+        .map((t,i)=>({
+          id: i,
+          coin: "-",
+          pnl: t.profit
+        }))
+
+    } catch(e) {
+
+      console.error(e)
+
+    } finally {
+
+      this.isLoading = false
+
     }
+
+  }
 
   },
 

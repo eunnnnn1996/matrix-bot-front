@@ -158,6 +158,7 @@
 </template>
 
 <script>
+import api from "../api/axios"
 export default {
   name: 'SettingPage',
   data() {
@@ -176,44 +177,55 @@ export default {
   },
   methods: {
     async save() {
-      if (this.isSaving) return
-      this.isSaving = true
 
-      try {
-        const res = await fetch('/api/trade/settings', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(this.form),
-        })
+    if (this.isSaving) return
+    this.isSaving = true
 
-        if (!res.ok) throw new Error(`HTTP ${res.status}`)
+    try {
 
-        console.log('[Settings] 저장됨:', JSON.stringify(this.form))
-        this.showToast = true
-        setTimeout(() => {
-          this.showToast = false
-        }, 2000)
-      } catch (e) {
-        console.error('[Settings] 저장 실패:', e.message)
-        alert('저장 실패: ' + e.message)
-      } finally {
-        this.isSaving = false
-      }
-    },
-    async loadSettings() {
-      try {
-        const res = await fetch('/api/trade/settings')
-        if (!res.ok) return
-        const data = await res.json()
-        Object.assign(this.form, data)
-      } catch (e) {
-        console.log('[Settings] 기존 설정 로드 실패:', e.message)
-      }
-    },
+      const res = await api.post("/api/trade/settings", this.form)
+
+      console.log("[Settings] 저장됨:", JSON.stringify(this.form))
+
+      this.showToast = true
+      setTimeout(() => {
+        this.showToast = false
+      }, 2000)
+
+    } catch (e) {
+
+      console.error("[Settings] 저장 실패:", e.message)
+      alert("저장 실패: " + e.message)
+
+    } finally {
+
+      this.isSaving = false
+
+    }
+
+  },
+
+  async loadSettings() {
+
+    try {
+
+      const res = await api.get("/api/trade/settings")
+
+      const data = res.data
+
+      Object.assign(this.form, data)
+
+    } catch (e) {
+
+      console.log("[Settings] 기존 설정 로드 실패:", e.message)
+
+    }
+
   },
   mounted() {
     this.loadSettings()
   },
+}
 }
 </script>
 
